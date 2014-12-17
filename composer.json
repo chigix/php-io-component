@@ -1,0 +1,20 @@
+{
+    "name": "chigix/io-component",
+    "type": "library",
+    "description": "PHP IO Component",
+    "keywords": ["Development Kit","IO","component"],
+    "homepage": "http://chigix.com",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Richard Lea",
+            "email": "chigix@zoho.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.4"
+    },
+    "autoload": {
+        "psr-4": { "Chigi\\Component\\IO\\": "src/" }
+    }
+}
