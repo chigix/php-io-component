@@ -36,10 +36,15 @@ class FileInputStream extends InputStream {
      * <code>$file</code> in the file system.
      * 
      * @param File $file
+     * @throws FileNotFoundException
      */
     protected function __construct(File $file) {
         parent::__construct();
-        $this->readHandle = \fopen($file->getName(), "rb");
+        if ($file->exists()) {
+            $this->readHandle = \fopen($file->getAbsolutePath(), "rb");
+        } else {
+            throw new FileNotFoundException($file->getAbsolutePath());
+        }
     }
 
     protected function readString($len = 1) {
