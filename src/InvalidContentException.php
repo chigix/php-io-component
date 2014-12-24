@@ -8,9 +8,5 @@ namespace Chigi\Component\IO;
  * @author Richard Lea <chigix@zoho.com>
  */
 class InvalidContentException extends IOException {
-
-    public function __construct($message, $code, $previous) {
-        parent::__construct($message, $code, $previous);
-    }
-
+    
 }
