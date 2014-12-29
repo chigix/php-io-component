@@ -74,6 +74,23 @@ class FileInputStream extends InputStream {
         }
     }
 
+    public function readLine($len = null) {
+        $line = null;
+        if (is_null($len)) {
+            $line = fgets($this->readHandle);
+        } else {
+            $line = fgets($this->readHandle, $len);
+        }
+        if ($line === FALSE) {
+            if (feof($this->readHandle)) {
+                throw new EOFException;
+            } else {
+                throw new IOException;
+            }
+        }
+        return trim($line, "\n\r");
+    }
+
     public function close() {
         fclose($this->readHandle);
     }
