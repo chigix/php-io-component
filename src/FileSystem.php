@@ -19,7 +19,58 @@ use Symfony\Component\Filesystem\Filesystem as SfFilesystem;
  * @author Richard Lea <chigix@zoho.com>
  */
 class FileSystem extends SfFilesystem {
+
+    /**
+     * Return the FileSystem object representing this platform's local filesystem. 
+     * 
+     * @staticvar FileSystem $instance
+     * @return FileSystem
+     */
+    public static function getFileSystem() {
+        static $instance = null;
+        if (is_null($instance)) {
+            $instance = new FileSystem();
+        }
+        return $instance;
+    }
+
     /* -- Normalization and construction -- */
+
+    /**
+     * The FileSystem Charset name.
+     *
+     * @var string
+     */
+    private $charset;
+
+    private function __construct() {
+        $this->charset = "UTF-8";
+    }
+
+    /**
+     * Set the Current System Charset name.<br>
+     * IMPORTANT: This method must be called at the begining 
+     * prevending unexpected file path error.
+     * 
+     * @param string $charset
+     * @return FileSystem
+     */
+    public function setCharset($charset) {
+        $this->charset = $charset;
+        return $this;
+    }
+
+    /**
+     * Get the current system charset name.<br>
+     * IMPORTANT: This method must be called after 
+     * <code>setCharset</code> confirmation, 
+     * or returns "UTF-8", the default.
+     * 
+     * @return string
+     */
+    private function getCharset() {
+        return $this->charset;
+    }
 
     /**
      * Return the local filesystem's name-separator character.<br>
@@ -49,18 +100,19 @@ class FileSystem extends SfFilesystem {
      * @return string The normalized path string.
      */
     public function normalize($path) {
-        $path = str_replace('\\', '/', $path);
-        while (strpos($path, '//') !== FALSE) {
-            $path = str_replace('//', '/', $path);
-        }
-        $path = str_replace('./', '', $path);
-        $path_exploded = explode('..', $path);
-        $path = $path_exploded[0];
-        for ($i = 1; $i < count($path_exploded); $i ++) {
-            $path = dirname($path) . '/' . $path_exploded[$i];
-        }
-        $path = str_replace('//', '/', $path);
-        return $path;
+        $path = strtr($path, '\\', '/');
+        return array_reduce(explode('/', $path), create_function('$a, $b', '
+                        if($a === 0)
+				return preg_replace("/\/+/", "/", "$b");
+ 
+			if($b === "" || $b === ".")
+				return $a;
+ 
+			if($b === "..")
+				return dirname($a);
+ 
+			return preg_replace("/\/+/", "/", "$a/$b");
+		'), 0);
     }
 
     /**
@@ -88,6 +140,43 @@ class FileSystem extends SfFilesystem {
             }
         }
         return $this->normalize($real_path);
+    }
+
+    /**
+     * Checks the existence of files or directories.
+     *
+     * @param string|array|\Traversable $files A filename, an array of files, or a \Traversable instance to check
+     *
+     * @return bool true if the file exists, false otherwise
+     */
+    public function exists($files) {
+        foreach ($this->toIterator($files) as $file) {
+            if (!\file_exists($this->localFileName($file))) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Tells whether the filename is a regular file.
+     * 
+     * @param string $file
+     * @return bool
+     */
+    public function isFile($file) {
+        return \is_file($this->localFileName($file));
+    }
+
+    /**
+     * Returns the filename encoded to the local file system.
+     * 
+     * @param string $file
+     * @return string
+     */
+    public function localFileName($file) {
+        return \iconv("utf-8", $this->charset, $file);
     }
 
 }

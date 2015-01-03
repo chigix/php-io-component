@@ -40,8 +40,8 @@ class FileInputStream extends InputStream {
      */
     protected function __construct(File $file) {
         parent::__construct();
-        if ($file->exists()) {
-            $this->readHandle = \fopen($file->getAbsolutePath(), "rb");
+        if ($file->exists() && $file->isFile()) {
+            $this->readHandle = \fopen(FileSystem::getFileSystem()->localFileName($file->getAbsolutePath()), "rb");
         } else {
             throw new FileNotFoundException($file->getAbsolutePath());
         }
@@ -77,22 +77,22 @@ class FileInputStream extends InputStream {
     public function readLine($len = null) {
         $line = null;
         if (is_null($len)) {
-            $line = fgets($this->readHandle);
+            $line = \fgets($this->readHandle);
         } else {
-            $line = fgets($this->readHandle, $len);
+            $line = \fgets($this->readHandle, $len);
         }
         if ($line === FALSE) {
-            if (feof($this->readHandle)) {
+            if (\feof($this->readHandle)) {
                 throw new EOFException;
             } else {
                 throw new IOException;
             }
         }
-        return trim($line, "\n\r");
+        return \trim($line, "\n\r");
     }
 
     public function close() {
-        fclose($this->readHandle);
+        \fclose($this->readHandle);
     }
 
 }

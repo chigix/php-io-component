@@ -19,12 +19,6 @@ class File {
     private $absolutePath;
 
     /**
-     * The FileSystem Object representing the platform's local file system.
-     * @var FileSystem
-     */
-    static private $fs = null;
-
-    /**
      * This abstract pathname's normalized pathname string.<br>
      * A normalized pathname string uses the default name-separator character 
      * and does not contain any duplicate or redundant separators.
@@ -44,17 +38,14 @@ class File {
      * @throws \InvalidArgumentException
      */
     function __construct($path, $parent_path = "") {
-        if (is_null(self::$fs)) {
-            self::$fs = new FileSystem();
-        }
         if (is_null($path)) {
             throw new \InvalidArgumentException("The first path param must be not null.");
         }
         if ($parent_path === "") {
             $parent_path = \getcwd();
         }
-        $this->path = self::$fs->normalize($path);
-        $this->absolutePath = self::$fs->resolve($this->path, $parent_path);
+        $this->path = FileSystem::getFileSystem()->normalize($path);
+        $this->absolutePath = FileSystem::getFileSystem()->resolve($parent_path, $this->path);
         $this->path = $path;
     }
 
@@ -99,7 +90,7 @@ class File {
      *              such as devices or pipes.
      */
     public function length() {
-        return filesize($this->absolutePath);
+        return \filesize($this->absolutePath);
     }
 
     /**
@@ -111,7 +102,16 @@ class File {
      *                  <code>False</code> otherwise.
      */
     public function exists() {
-        return file_exists($this->absolutePath);
+        return FileSystem::getFileSystem()->exists($this->absolutePath);
+    }
+
+    /**
+     * Tests whether the file denoted by this abstract pathname is a normal file.
+     * 
+     * @return boolean
+     */
+    public function isFile() {
+        return FileSystem::getFileSystem()->isFile($this->absolutePath);
     }
 
 }
