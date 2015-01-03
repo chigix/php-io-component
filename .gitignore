@@ -1,4 +1,4 @@
-/nbproject/private/
-/.nbproject/nbproject/private/
-/vendor/
-/composer.lock
+nbproject/private/
+.nbproject/nbproject/private/
+vendor/
+composer.lock
