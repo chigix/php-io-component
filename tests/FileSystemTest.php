@@ -17,7 +17,7 @@ class FileSystemTest extends \PHPUnit_Framework_TestCase {
      * This method is called before a test is executed.
      */
     protected function setUp() {
-        $this->object = new FileSystem;
+        $this->object = FileSystem::getFileSystem();
     }
 
     /**
@@ -77,10 +77,27 @@ class FileSystemTest extends \PHPUnit_Framework_TestCase {
      * @todo   Implement testNormalize().
      */
     public function testNormalize() {
-        // Remove the following lines when you implement this test.
-        $this->markTestIncomplete(
-                'This test has not been implemented yet.'
-        );
+        $this->assertEquals("D:/opt/usr/var/tmp.log", $this->object->normalize("D:/opt/usr/var/tmp.log"));
+        $this->assertEquals("D:/var/tmp.log", $this->object->normalize("D:\\opt\\..\\var/tmp.log"));
+        $this->assertEquals("D:/opt/test space/var/tmp.log", $this->object->normalize("D:/opt/test space/var/tmp.log"));
+        $this->assertEquals("/opt/usr/var/tmp.log", $this->object->normalize("/opt/usr/var/tmp.log"));
+        $this->assertEquals("/opt/usr/var/tmp.log", $this->object->normalize("/opt/usr/./var/tmp.log"));
+        $this->assertEquals("/opt/usr/var/tmp.log", $this->object->normalize("/opt/usr/.///.//var/tmp.log"));
+        $this->assertEquals("/", $this->object->normalize("/opt/usr/../../../"));
+        $this->assertEquals("../../chiji/app/login.less", $this->object->normalize("../../chiji/app/login.less"));
+        $this->assertEquals("../../app/login.less", $this->object->normalize("../../chiji/../app/login.less"));
+        $this->assertEquals("./...", $this->object->normalize("..."));
+        $this->assertEquals("./...", $this->object->normalize(".../"));
+        $this->assertEquals("..", $this->object->normalize(".."));
+        $this->assertEquals("..", $this->object->normalize("../"));
+        $this->assertEquals(".", $this->object->normalize("."));
+        $this->assertEquals(".", $this->object->normalize("./"));
+        $this->assertEquals("./a", $this->object->normalize("a"));
+        $this->assertEquals("./opt", $this->object->normalize("opt/usr/./.."));
+        $this->assertEquals("./opt/usr/var/tmp.log", $this->object->normalize("opt/usr/.///.//var/tmp.log"));
+        $this->assertEquals("./opt/var/tmp.log", $this->object->normalize("opt/usr/./..//.//var/tmp.log"));
+        $this->assertEquals(".", $this->object->normalize("opt/usr/../../"));
+        $this->assertEquals("..", $this->object->normalize("opt/usr/../../.."));
     }
 
     /**

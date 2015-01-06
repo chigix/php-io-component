@@ -100,19 +100,44 @@ class FileSystem extends SfFilesystem {
      * @return string The normalized path string.
      */
     public function normalize($path) {
-        $path = strtr($path, '\\', '/');
-        return array_reduce(explode('/', $path), create_function('$a, $b', '
-                        if($a === 0)
-				return preg_replace("/\/+/", "/", "$b");
- 
-			if($b === "" || $b === ".")
-				return $a;
- 
-			if($b === "..")
-				return dirname($a);
- 
-			return preg_replace("/\/+/", "/", "$a/$b");
-		'), 0);
+        $path = strtr(trim($path), '\\', '/');
+        $result = substr(
+                array_reduce(
+                        explode('/', $path)
+                        , create_function('$a, $b', '
+                            if($a === 0){
+                                    if($b === "." 
+                                        || $b === ".." 
+                                        || substr($b,1,1) === ":" 
+                                        || $b === ""){
+                                        return preg_replace("/\/+/", "/", "$b/");
+                                    } else {
+                                        return preg_replace("/\/+/", "/", "./$b/");
+                                    }
+                            }
+                            if($b === "" || $b === "."){
+                                    return preg_replace("/\/+/", "/", "$a/");
+                            }
+                            if($b === ".." && substr($a, -4) === "/../"){
+                                    return preg_replace("/\/+/", "/", "$a/$b/");
+                            }
+                            if($b === ".." && $a === "../"){
+                                    return preg_replace("/\/+/", "/", "$a/$b/");
+                            }
+                            if($b === ".." && $a === "./"){
+                                    return "../";
+                            }
+                            if($b === ".." && $a === "/"){
+                                    return "//";
+                            }
+                            if($b === ".."){
+                                    return preg_replace("/\/+/", "/", strtr(dirname($a), \'\\\\\', \'/\') . "/");
+                            }
+                            return preg_replace("/\/+/", "/", "$a/$b/");
+                        ')
+                        , 0)
+                , 0, -1);
+        return $result === "" ? "/" : $result;
     }
 
     /**
@@ -123,15 +148,22 @@ class FileSystem extends SfFilesystem {
      * @param string $parent_path
      * @param string $child_path
      * @return string
+     * @throws \InvalidArgumentException
      */
     public function resolve($parent_path, $child_path) {
+        if (!is_string($parent_path)) {
+            throw new \InvalidArgumentException("The first path param must be string.");
+        }
+        if (!is_string($child_path)) {
+            throw new \InvalidArgumentException("The child Path param must be string.");
+        }
         $real_path = null;
         if ('/' === substr($child_path, 0, 1)) {
             $real_path = $child_path;
         } elseif (preg_match('#^[a-zA-Z]:[\/\\\]#', $child_path)) {
             $real_path = $child_path;
         } else {
-            if (is_dir($parent_path)) {
+            if (\is_dir($parent_path)) {
                 // Resolve as a relative path join.
                 $real_path = $parent_path . '/' . $child_path;
             } else {
@@ -143,40 +175,33 @@ class FileSystem extends SfFilesystem {
     }
 
     /**
-     * Checks the existence of files or directories.
-     *
-     * @param string|array|\Traversable $files A filename, an array of files, or a \Traversable instance to check
-     *
-     * @return bool true if the file exists, false otherwise
+     * Tells whether the filename is a regular file.
+     * 
+     * @param string $file_name the filename string in UTF-8 encoding.
+     * @return bool
      */
-    public function exists($files) {
-        foreach ($this->toIterator($files) as $file) {
-            if (!\file_exists($this->localFileName($file))) {
-                return false;
-            }
-        }
-
-        return true;
+    public function isFile($file_name) {
+        return \is_file($this->localFileName($file_name));
     }
 
     /**
-     * Tells whether the filename is a regular file.
+     * Tells whether the filename is a directory.
      * 
-     * @param string $file
-     * @return bool
+     * @param string $file_name The filename string in UTF-8 encoding.
+     * @return boolean
      */
-    public function isFile($file) {
-        return \is_file($this->localFileName($file));
+    public function isDirectory($file_name) {
+        return \is_dir($this->localFileName($file_name));
     }
 
     /**
      * Returns the filename encoded to the local file system.
      * 
-     * @param string $file
+     * @param string $file_name
      * @return string
      */
-    public function localFileName($file) {
-        return \iconv("utf-8", $this->charset, $file);
+    public function localFileName($file_name) {
+        return \iconv("utf-8", $this->charset, $file_name);
     }
 
 }
