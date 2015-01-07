@@ -38,8 +38,11 @@ class File {
      * @throws \InvalidArgumentException
      */
     function __construct($path, $parent_path = "") {
-        if (is_null($path)) {
-            throw new \InvalidArgumentException("The first path param must be not null.");
+        if (!is_string($path)) {
+            throw new \InvalidArgumentException("The first path param must be string.");
+        }
+        if (!is_string($parent_path)) {
+            throw new \InvalidArgumentException("The parent path param must be string.");
         }
         if ($parent_path === "") {
             $parent_path = \getcwd();
@@ -102,7 +105,7 @@ class File {
      *                  <code>False</code> otherwise.
      */
     public function exists() {
-        return FileSystem::getFileSystem()->exists($this->absolutePath);
+        return \file_exists(FileSystem::getFileSystem()->localFileName($this->absolutePath));
     }
 
     /**
@@ -112,6 +115,15 @@ class File {
      */
     public function isFile() {
         return FileSystem::getFileSystem()->isFile($this->absolutePath);
+    }
+
+    /**
+     * Tests whether the file denoted by this abstract pathname is a directory.
+     * 
+     * @return boolean <b>TRUE</b> if the filename exists and is a directory, <b>FALSE</b> otherwise.
+     */
+    public function isDirectory() {
+        return FileSystem::getFileSystem()->isDirectory($this->absolutePath);
     }
 
 }
