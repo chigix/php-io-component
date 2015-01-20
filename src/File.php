@@ -2,6 +2,8 @@
 
 namespace Chigi\Component\IO;
 
+use InvalidArgumentException;
+
 /**
  * An abstract representation of file and directory pathnames.
  * 
@@ -35,14 +37,14 @@ class File {
      * 
      * @param string $path
      * @param string $parent_path
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     function __construct($path, $parent_path = "") {
         if (!is_string($path)) {
-            throw new \InvalidArgumentException("The first path param must be string.");
+            throw new InvalidArgumentException("The first path param must be string.");
         }
         if (!is_string($parent_path)) {
-            throw new \InvalidArgumentException("The parent path param must be string.");
+            throw new InvalidArgumentException("The parent path param must be string.");
         }
         if ($parent_path === "") {
             $parent_path = \getcwd();
@@ -81,6 +83,17 @@ class File {
      */
     public function getAbsolutePath() {
         return $this->absolutePath;
+    }
+
+    /**
+     * Returns the absolute form of this abstract pathname. Equivalent to 
+     * <code>new File(this.getAbsolute())</code>.
+     * 
+     * @return File The absolute abstract pathname denoting 
+     *               the same file or directory as this abstract pathname.
+     */
+    public function getAbsoluteFile() {
+        return new File($this->absolutePath);
     }
 
     /**
@@ -124,6 +137,58 @@ class File {
      */
     public function isDirectory() {
         return FileSystem::getFileSystem()->isDirectory($this->absolutePath);
+    }
+
+    /**
+     * Creates the directory named by this abstract pathname.
+     * 
+     * @return boolean
+     */
+    public function mkdir() {
+        return \mkdir(FileSystem::getFileSystem()->localFileName($this->absolutePath), 0755);
+    }
+
+    /**
+     * Creates the directory named by this abstract pathname, including any necessary 
+     * but nonexistent parent directories.
+     * 
+     * @return boolean
+     */
+    public function mkdirs() {
+        return \mkdir(FileSystem::getFileSystem()->localFileName($this->absolutePath), 0755, TRUE);
+    }
+
+    /**
+     * Returns the pathname string of this abstract pathname's parent, 
+     * or <code>null</code> if this pathname does not name a parent directory. 
+     * The <code>parent</code> of an abstract pathname consists of the pathname's prefix, 
+     * if any, and each name in the pathname's name sequence except for the last.
+     * If the name sequence is empty then the pathname does not name a parent directory.
+     * 
+     * @return string The pathname string of the parent directory, 
+     *                 or <code>null</code> if this pathname does not name a parent.
+     */
+    public function getParent() {
+        return FileSystem::getFileSystem()->normalize($this->path . "/..");
+    }
+
+    /**
+     * Returns the abstract pathname of this abstract pathname's parent, 
+     * or <code>null</code> if this pathname does not name a parent directory.
+     * The <code>parent</code> of an abstract pathname consists of the pathname's prefix, 
+     * if any, and each name in the pathname's name sequence except for the last. 
+     * If the name sequence is empty then the pathname does not name a parent directory.
+     * 
+     * @return File The abstract pathname of the parent directory 
+     *                   named by this abstract pathname, or <code>null</code> 
+     *                   if this pathname does not name a parent.
+     */
+    public function getParentFile() {
+        $p = $this->getParent();
+        if (\is_null($p)) {
+            return NULL;
+        }
+        return new File($p);
     }
 
 }
