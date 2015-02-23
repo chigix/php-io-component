@@ -1,6 +1,11 @@
 IO Component
 =================
 
+[![Latest Stable Version](https://poser.pugx.org/chigix/io-component/v/stable.svg)](https://packagist.org/packages/chigix/io-component) 
+[![Total Downloads](https://poser.pugx.org/chigix/io-component/downloads.svg)](https://packagist.org/packages/chigix/io-component) 
+[![Latest Unstable Version](https://poser.pugx.org/chigix/io-component/v/unstable.svg)](https://packagist.org/packages/chigix/io-component) 
+[![License](https://poser.pugx.org/chigix/io-component/license.svg)](https://packagist.org/packages/chigix/io-component)
+
 IO Component greatly provide some base classes as streams, serialization and the file system for System Input and output. 
 
 If you are familiar with java.io in JDK, you might get started to use this component quickly.
