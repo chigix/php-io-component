@@ -30,6 +30,12 @@ class FileInputStream extends InputStream {
     private $readHandle;
 
     /**
+     *
+     * @var File
+     */
+    private $file;
+
+    /**
      * Creates a <code>FileInputStream</code> by 
      * opening a connection to an actual file,
      * the file named by the <code>File</code> object 
@@ -38,8 +44,9 @@ class FileInputStream extends InputStream {
      * @param File $file
      * @throws FileNotFoundException
      */
-    protected function __construct(File $file) {
+    public function __construct(File $file) {
         parent::__construct();
+        $this->file = $file;
         if ($file->exists() && $file->isFile()) {
             $this->readHandle = \fopen(FileSystem::getFileSystem()->localFileName($file->getAbsolutePath()), "rb");
         } else {
@@ -91,8 +98,25 @@ class FileInputStream extends InputStream {
         return \trim($line, "\n\r");
     }
 
+    /**
+     * Read all contents in the file and return as string.
+     * 
+     * @return string
+     */
+    public function readAll() {
+        //$max_len = \filesize($this->file->getAbsolutePath());
+        //return $this->readString($max_len);
+        return \file_get_contents($this->file->getAbsolutePath());
+    }
+
     public function close() {
         \fclose($this->readHandle);
     }
+    
+    function getFile() {
+        return $this->file;
+    }
+
+
 
 }
