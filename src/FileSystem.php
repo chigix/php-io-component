@@ -101,6 +101,12 @@ class FileSystem extends SfFilesystem {
      */
     public function normalize($path) {
         $path = strtr(trim($path), '\\', '/');
+        $scheme = "";
+        $matches = array();
+        if (preg_match('#([a-zA-Z]+:/)/(.+)#', $path, $matches)) {
+            $scheme = $matches[1];
+            $path = "/" . $matches[2];
+        }
         $result = substr(
                 array_reduce(
                         explode('/', $path)
@@ -137,7 +143,7 @@ class FileSystem extends SfFilesystem {
                         ')
                         , 0)
                 , 0, -1);
-        return $result === "" ? "/" : $result;
+        return $scheme . ($result === "" ? "/" : $result);
     }
 
     /**
